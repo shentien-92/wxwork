@@ -1,11 +1,12 @@
 package wxwork
 
 import (
-	"encoding/xml"
 	"encoding/json"
+	"encoding/xml"
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 )
 
 // RecvMessage 消息接收基础结构
@@ -40,24 +41,28 @@ type RecvMessage struct {
 }
 
 type CallbackData struct {
-	agentId  string `json:"agentId"`
-	content   string    `json:"content"`
-	ldap string `json:"ldap"`
+	agentId string `json:"agentId"`
+	content string `json:"content"`
+	ldap    string `json:"ldap"`
 }
 
 // ParseRecvMessage 解析接收到的消息
 func (a *Agent) ParseRecvMessage(signature, timestamp, nonce string, data []byte) (recv RecvMessage, err error) {
 	msg, cryptErr := a.crypt.DecryptMsg(signature, timestamp, nonce, data)
 	if nil != cryptErr {
-		print(data)
+		fmt.Println(data)
 		var callbackData CallbackData
-		err = json.Unmarshal(data, &callbackData)
+		err = json.Unmarshal(json.RawMessage(data), &callbackData)
 		if err != nil {
 			return recv, fmt.Errorf("DecryptMsg fail: %v, \n json dump error %v", cryptErr, err)
 		}
-		print(callbackData.content)
-		parseErr := xml.Unmarshal([]byte(callbackData.content), &recv)
-		return recv, parseErr
+		fmt.Println(callbackData.content)
+		recv.agentId = callbackData.agentId
+		recv.content = callbackData.content
+		recv.FromUsername = callbackData.ldap
+		recv.ToUsername = "diyQABot"
+		recv.CreateTime = time.Now().Unix()
+		return recv, nil
 	}
 	err = xml.Unmarshal(msg, &recv)
 	return recv, err
