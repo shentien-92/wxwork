@@ -42,25 +42,25 @@ type RecvMessage struct {
 }
 
 type CallbackData struct {
-	agentId string `json:"agentId"`
-	content string `json:"content"`
-	ldap    string `json:"ldap"`
+	AgentId string `json:"agentId"`
+	Content string `json:"content"`
+	Ldap    string `json:"ldap"`
 }
 
 // ParseRecvMessage 解析接收到的消息
 func (a *Agent) ParseRecvMessage(signature, timestamp, nonce string, data []byte) (recv RecvMessage, err error) {
 	msg, cryptErr := a.crypt.DecryptMsg(signature, timestamp, nonce, data)
 	if nil != cryptErr {
-		fmt.Println(data)
+		fmt.Println(string(data))
 		var callbackData CallbackData
 		err = json.Unmarshal(json.RawMessage(data), &callbackData)
 		if err != nil {
 			return recv, fmt.Errorf("DecryptMsg fail: %v, \n json dump error %v", cryptErr, err)
 		}
-		fmt.Println(callbackData.content)
-		recv.AgentID, err = strconv.Atoi(callbackData.agentId)
-		recv.Content = callbackData.content
-		recv.FromUsername = callbackData.ldap
+		fmt.Println(callbackData.Content)
+		recv.AgentID, err = strconv.Atoi(callbackData.AgentId)
+		recv.Content = callbackData.Content
+		recv.FromUsername = callbackData.Ldap
 		recv.ToUsername = "diyQABot"
 		recv.CreateTime = time.Now().Unix()
 		return recv, nil
