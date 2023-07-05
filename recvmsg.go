@@ -2,6 +2,7 @@ package wxwork
 
 import (
 	"encoding/xml"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -38,16 +39,28 @@ type RecvMessage struct {
 	RecvEvent
 }
 
+type CallbackData struct {
+	agentId  string `json:"agentId"`
+	content   string    `json:"content"`
+	ldap string `json:"ldap"`
+}
+
 // ParseRecvMessage 解析接收到的消息
 func (a *Agent) ParseRecvMessage(signature, timestamp, nonce string, data []byte) (recv RecvMessage, err error) {
 	msg, cryptErr := a.crypt.DecryptMsg(signature, timestamp, nonce, data)
 	if nil != cryptErr {
-		return recv, fmt.Errorf("DecryptMsg fail: %v", cryptErr)
+		print(data)
+		var callbackData CallbackData
+		err = json.Unmarshal(data, &callbackData)
+		if err != nil {
+			return recv, fmt.Errorf("DecryptMsg fail: %v, \n json dump error %v", cryptErr, err)
+		}
+		print(callbackData.content)
+		parseErr := xml.Unmarshal([]byte(callbackData.content), &recv)
+		return recv, parseErr
 	}
-
 	err = xml.Unmarshal(msg, &recv)
-
-	return
+	return recv, err
 }
 
 // CallbackVerify 回调配置验证URL有效性
