@@ -1,4 +1,4 @@
-module github.com/ghaoo/wxwork
+module github.com/shentien-92/wxwork
 
 go 1.13
 
