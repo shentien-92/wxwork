@@ -57,8 +57,8 @@ func (a *Agent) ParseRecvMessage(signature, timestamp, nonce string, data []byte
 			return recv, fmt.Errorf("DecryptMsg fail: %v, \n json dump error %v", cryptErr, err)
 		}
 		fmt.Println(callbackData.content)
-		recv.agentId = callbackData.agentId
-		recv.content = callbackData.content
+		recv.AgentID = callbackData.agentId
+		recv.Content = callbackData.content
 		recv.FromUsername = callbackData.ldap
 		recv.ToUsername = "diyQABot"
 		recv.CreateTime = time.Now().Unix()
